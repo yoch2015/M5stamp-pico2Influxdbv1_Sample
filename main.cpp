@@ -10,6 +10,7 @@ const char INFLUXDB_URL[] = "yourAddress.org";
 const char INFLUXDB_USER[] = "yourName";
 const char INFLUXDB_PASSWORD[] = "yourPasseord";
 const char* INFLUXDB_PATH = "/write?db=yourDBname";
+#define authEnable false
 
 //Ethernet setting
 uint8_t cs_pin = 19; // stamp CS pin
@@ -27,11 +28,17 @@ String payload;
 
 bool sendToInfluxDB(String payload) {
 
+  char url[256];
   Serial.println(payload);
 
   http.beginRequest();
-  http.post(INFLUXDB_PATH);
-  http.sendBasicAuth(INFLUXDB_USER, INFLUXDB_PASSWORD);
+  if(authEnable){
+    http.post(INFLUXDB_PATH);
+    http.sendBasicAuth(INFLUXDB_USER, INFLUXDB_PASSWORD);
+  } else {
+    sprintf(url, "%s&u=%s&p=%s", INFLUXDB_PATH, INFLUXDB_USER, INFLUXDB_PASSWORD);
+    http.post(url);
+  }
   http.sendHeader("Content-Type", "text/plain");
   http.sendHeader("Content-Length", payload.length());
   http.beginBody();
@@ -100,3 +107,4 @@ void loop(){
 
   while(1){}
 }
+
